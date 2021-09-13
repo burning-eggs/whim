@@ -184,16 +184,12 @@ def usage(compiler_name):
     print("    help              Prints this help menu")
 
 
-def uncons(xs):
-    return (xs[0], xs[1:])  # noqa
-
-
 if __name__ == "__main__":
     argv = sys.argv
 
     assert len(argv) >= 1
 
-    compiler_name, argv = uncons(argv)
+    compiler_name, *argv = argv
 
     if len(sys.argv) < 1:
         usage(compiler_name)
@@ -201,7 +197,7 @@ if __name__ == "__main__":
         print("\nERROR: A SUBCOMMAND was not provided")
         exit(1)
 
-    subcommand, argv = uncons(argv)
+    subcommand, *argv = argv
 
     if subcommand == "sim":
         if len(argv) < 1:
@@ -210,7 +206,7 @@ if __name__ == "__main__":
             print("\nERROR: Input file was not provided for simulation")
             exit(1)
 
-        program_path, argv = uncons(argv)
+        program_path, *argv = argv
         program = load_program_from_file(program_path)
 
         simulate_program(program)
@@ -221,7 +217,7 @@ if __name__ == "__main__":
             print("\nERROR: Input file was not provided for compiling")
             exit(1)
 
-        program_path, argv = uncons(argv)
+        program_path, *argv = argv
         program = load_program_from_file(program_path)
 
         whim_ext = ".whm"
