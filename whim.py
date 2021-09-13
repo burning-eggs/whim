@@ -224,10 +224,16 @@ if __name__ == "__main__":
         program_path, argv = uncons(argv)
         program = load_program_from_file(program_path)
 
-        compile_program(program, "output.asm")
-        call_cmd(["nasm", "-felf64", "output.asm"])
-        call_cmd(["ld", "-o", "output.asm", "output.o"])
-        call_cmd(["rm", "-rf", "output.o"])
+        whim_ext = ".whm"
+        basename = path.basename(program_path)
+
+        if basename.endswith(whim_ext):
+            basename = basename[:-len(whim_ext)]
+
+        compile_program(program, basename + ".asm")
+        call_cmd(["nasm", "-felf64", basename + ".asm"])
+        call_cmd(["ld", "-o", basename + ".asm", basename + ".o"])
+        call_cmd(["rm", "-rf", basename + ".o"])
     elif subcommand == "help":
         usage(compiler_name)
 
