@@ -227,11 +227,11 @@ if __name__ == "__main__":
         call_cmd(["ld", "-o", "output.asm", "output.o"])
         call_cmd(["rm", "-rf", "output.o"])
     elif subcommand == "help":
-        usage(program_name)
+        usage(compiler_name)
 
         exit(0)
     else:
-        usage(program_name)
+        usage(compiler_name)
 
         print("\nERROR: Unknown SUBCOMMAND '%s'" % subcommand)
         exit(1)
