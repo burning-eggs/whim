@@ -191,7 +191,7 @@ if __name__ == "__main__":
 
     compiler_name, *argv = argv
 
-    if len(sys.argv) < 1:
+    if len(argv) < 1:
         usage(compiler_name)
 
         print("\nERROR: A SUBCOMMAND was not provided")
