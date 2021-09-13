@@ -150,11 +150,29 @@ program = [
 ]
 
 
-def usage():
-    print("Usage: whim <SUBCOMMAND> [ARGS]\n")
+def parse_word_as_op(word):
+    assert COUNT_OPS == 4, "[PARSING ERROR] Exhaustive operation handling"
+
+    if word == "+":
+        return plus()
+    elif word == "-":
+        return minus()
+    elif word == ".":
+        return dump()
+    else:
+        return push(int(word))
+
+
+def load_program_from_file(file_path):
+    with open(file_path, "r") as f:
+        return [parse_word_as_op(word) for word in f.read().split()]
+
+
+def usage(program):
+    print("Usage: %s <SUBCOMMAND> [ARGS]\n" % program)
     print("SUBCOMMANDS:")
-    print("    sim        Simulate program")
-    print("    com        Compile program")
+    print("    sim <file>        Simulate program")
+    print("    com <file>        Compile program")
 
 
 def call_cmd(cmd):
@@ -163,24 +181,52 @@ def call_cmd(cmd):
     subprocess.call(cmd)
 
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        usage()
+def uncons(xs):
+    return (xs[0], xs[1:])  # noqa
 
-        print("\nERROR: A SUBCOMMAND was not provided.")
+
+if __name__ == "__main__":
+    argv = sys.argv
+
+    assert len(argv) >= 1
+
+    program_name, argv = uncons(argv)
+
+    if len(sys.argv) < 1:
+        usage(program_name)
+
+        print("\nERROR: A SUBCOMMAND was not provided")
         exit(1)
 
-    subcommand = sys.argv[1]
+    subcommand, argv = uncons(argv)
 
     if subcommand == "sim":
+        if len(argv) < 1:
+            usage(program_name)
+
+            print("\nERROR: Input file was not provided for simulation")
+            exit(1)
+
+        program_path, argv = uncons(argv)
+        program = load_program_from_file(program_path)
+
         simulate_program(program)
     elif subcommand == "com":
+        if len(argv) < 1:
+            usage(program_name)
+
+            print("\nERROR: Input file was not provided for compiling")
+            exit(1)
+
+        program_path, argv = uncons(argv)
+        program = load_program_from_file(program_path)
+
         compile_program(program, "output.asm")
         call_cmd(["nasm", "-felf64", "output.asm"])
         call_cmd(["ld", "-o", "output.asm", "output.o"])
         call_cmd(["rm", "-rf", "output.o"])
     else:
-        usage()
+        usage(program_name)
 
         print("\nERROR: Unknown SUBCOMMAND '%s'" % subcommand)
         exit(1)
