@@ -168,17 +168,18 @@ def load_program_from_file(file_path):
         return [parse_word_as_op(word) for word in f.read().split()]
 
 
-def usage(program):
-    print("Usage: %s <SUBCOMMAND> [ARGS]\n" % program)
-    print("SUBCOMMANDS:")
-    print("    sim <file>        Simulate program")
-    print("    com <file>        Compile program")
-
-
 def call_cmd(cmd):
     print(cmd)
 
     subprocess.call(cmd)
+
+
+def usage(compiler_name):
+    print("Usage: %s <SUBCOMMAND> [ARGS]\n" % compiler_name)
+    print("SUBCOMMANDS:")
+    print("    sim <file>        Simulate program")
+    print("    com <file>        Compile program")
+    print("    help              Prints this help menu")
 
 
 def uncons(xs):
@@ -190,10 +191,10 @@ if __name__ == "__main__":
 
     assert len(argv) >= 1
 
-    program_name, argv = uncons(argv)
+    compiler_name, argv = uncons(argv)
 
     if len(sys.argv) < 1:
-        usage(program_name)
+        usage(compiler_name)
 
         print("\nERROR: A SUBCOMMAND was not provided")
         exit(1)
@@ -202,7 +203,7 @@ if __name__ == "__main__":
 
     if subcommand == "sim":
         if len(argv) < 1:
-            usage(program_name)
+            usage(compiler_name)
 
             print("\nERROR: Input file was not provided for simulation")
             exit(1)
@@ -213,7 +214,7 @@ if __name__ == "__main__":
         simulate_program(program)
     elif subcommand == "com":
         if len(argv) < 1:
-            usage(program_name)
+            usage(compiler_name)
 
             print("\nERROR: Input file was not provided for compiling")
             exit(1)
@@ -225,6 +226,10 @@ if __name__ == "__main__":
         call_cmd(["nasm", "-felf64", "output.asm"])
         call_cmd(["ld", "-o", "output.asm", "output.o"])
         call_cmd(["rm", "-rf", "output.o"])
+    elif subcommand == "help":
+        usage(program_name)
+
+        exit(0)
     else:
         usage(program_name)
 
