@@ -24,6 +24,7 @@ def iota(reset=False):
 OP_PUSH = iota(True)
 OP_PLUS = iota()
 OP_MINUS = iota()
+OP_EQUAL = iota()
 OP_DUMP = iota()
 COUNT_OPS = iota()
 
@@ -40,6 +41,10 @@ def minus():
     return (OP_MINUS,)  # noqa
 
 
+def equal():
+    return (OP_EQUAL,)  # noqa
+
+
 def dump():
     return (OP_DUMP,)  # noqa
 
@@ -48,7 +53,7 @@ def simulate_program(program):
     stack = []
 
     for op in program:
-        assert COUNT_OPS == 4, "[SIMULATION ERROR] Exhaustive handling of operations"
+        assert COUNT_OPS == 5, "[SIMULATION ERROR] Exhaustive handling of operations"
 
         if op[0] == OP_PUSH:
             stack.append(op[1])
@@ -62,6 +67,11 @@ def simulate_program(program):
             b = stack.pop()
 
             stack.append(b - a)
+        elif op[0] == OP_EQUAL:
+            a = stack.pop()
+            b = stack.pop()
+
+            stack.append(int(a == b))
         elif op[0] == OP_DUMP:
             a = stack.pop()
 
@@ -72,6 +82,7 @@ def simulate_program(program):
 
 def compile_program(program, out_file_path):
     with open(out_file_path, "w") as out:
+        out.write("BITS 64\n")
         out.write("segment .text\n")
         out.write("dump:\n")
         out.write("    mov     r9, -3689348814741910323\n")
@@ -111,7 +122,7 @@ def compile_program(program, out_file_path):
 
         for op in program:
             assert (
-                COUNT_OPS == 4
+                COUNT_OPS == 5
             ), "[COMPILATION ERROR] Exhaustive handling of operations"
 
             if op[0] == OP_PUSH:
@@ -129,6 +140,14 @@ def compile_program(program, out_file_path):
                 out.write("    pop rbx\n")
                 out.write("    sub rbx, rax\n")
                 out.write("    push rbx\n")
+            elif op[0] == OP_EQUAL:
+                out.write("    ;; -- equal --\n")
+                out.write("    mov rcx, 0\n")
+                out.write("    mov rdx, 1\n")
+                out.write("    pop rax\n")
+                out.write("    pop rbx\n")
+                out.write("    cmp rax, rbx\n")
+                out.write("    cmove rcx, rdx\n")
             elif op[0] == OP_DUMP:
                 out.write("    ;; -- dump --\n")
                 out.write("    pop rdi\n")
@@ -141,8 +160,10 @@ def compile_program(program, out_file_path):
         out.write("    syscall\n")
 
 
-def parse_word_as_op(word):
-    assert COUNT_OPS == 4, "[PARSING ERROR] Exhaustive operation handling"
+def parse_token_as_op(token):
+    file_path, row, col, word = token
+
+    assert COUNT_OPS == 5, "[PARSING ERROR] Exhaustive operation handling"
 
     if word == "+":
         return plus()
@@ -150,13 +171,40 @@ def parse_word_as_op(word):
         return minus()
     elif word == ".":
         return dump()
+    elif word == "=":
+        return equal()
     else:
-        return push(int(word))
+        try:
+            return push(int(word))
+        except ValueError as err:
+            print("[ERROR] %s:%d:%d: %s" % (file_path, row, col, err))
+
+
+def find_col(line, start, predicate):
+    while start < len(line) and not predicate(line[start]):
+        start += 1
+
+    return start
+
+
+def lex_line(line):
+    col = find_col(line, 0, lambda x: not x.isspace())
+
+    while col < len(line):
+        col_end = find_col(line, col, lambda x: x.isspace())
+
+        yield col, line[col:col_end]
+
+        col = find_col(line, col_end, lambda x: not x.isspace())
+
+
+def lex_file(file_path):
+    with open(file_path, "r") as f:
+        return [(file_path, row, col, token) for (row, line) in enumerate(f.readlines()) for (col, token) in lex_line(line)]
 
 
 def load_program_from_file(file_path):
-    with open(file_path, "r") as f:
-        return [parse_word_as_op(word) for word in f.read().split()]
+    return [parse_token_as_op(token) for token in lex_file(file_path)]
 
 
 def cmd_echoed(cmd):
