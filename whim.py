@@ -178,6 +178,7 @@ def parse_token_as_op(token):
             return push(int(word))
         except ValueError as err:
             print("[ERROR] %s:%d:%d: %s" % (file_path, row, col, err))
+            exit(1)
 
 
 def find_col(line, start, predicate):
