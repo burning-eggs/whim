@@ -30,6 +30,7 @@ OP_IF = iota()
 OP_END = iota()
 OP_ELSE = iota()
 OP_DUP = iota()
+OP_GT = iota()
 COUNT_OPS = iota()
 
 
@@ -69,12 +70,16 @@ def dup():
     return (OP_DUP,)  # noqa
 
 
+def gt():
+    return (OP_GT,)  # noqa
+
+
 def simulate_program(program):
     stack = []
     ip = 0
 
     while ip < len(program):
-        assert COUNT_OPS == 9, "[SIMULATION ERROR] Exhaustive handling of operations"
+        assert COUNT_OPS == 10, "[SIMULATION ERROR] Exhaustive handling of operations"
 
         op = program[ip]
 
@@ -134,6 +139,13 @@ def simulate_program(program):
             stack.append(a)
 
             ip += 1
+        elif op[0] == OP_GT:
+            a = stack.pop()
+            b = stack.pop()
+
+            stack.append(int(a < b))
+
+            ip += 1
         else:
             assert False, "[SIMULATION ERROR] Unreachable operation"
 
@@ -182,7 +194,7 @@ def compile_program(program, out_file_path):
             op = program[ip]
 
             assert (
-                COUNT_OPS == 8
+                COUNT_OPS == 10
             ), "[COMPILATION ERROR] Exhaustive handling of operations"
 
             if op[0] == OP_PUSH:
@@ -239,6 +251,15 @@ def compile_program(program, out_file_path):
                 out.write("    pop rax\n")
                 out.write("    push rax\n")
                 out.write("    push rax\n")
+            elif op[0] == OP_GT:
+                out.write("    ;; -- gt --\n")
+                out.write("    mov rcx, 0\n")
+                out.write("    mov rdx, 1\n")
+                out.write("    pop rbx\n")
+                out.write("    pop rax\n")
+                out.write("    cmp rax, rbx\n")
+                out.write("    cmovg rcx, rdx\n")
+                out.write("    push rcx\n")
             else:
                 assert False, "[COMPILATION ERROR] Unreachable operation"
 
@@ -250,7 +271,7 @@ def compile_program(program, out_file_path):
 def parse_token_as_op(token):
     file_path, row, col, word = token
 
-    assert COUNT_OPS == 9, "[PARSING ERROR] Exhaustive operation handling"
+    assert COUNT_OPS == 10, "[PARSING ERROR] Exhaustive operation handling"
 
     if word == "+":
         return plus()
@@ -268,6 +289,8 @@ def parse_token_as_op(token):
         return elze()
     elif word == "dup":
         return dup()
+    elif word == ">":
+        return gt()
     else:
         try:
             return push(int(word))
@@ -283,7 +306,7 @@ def crossreference_blocks(program):
         op = program[ip]
 
         assert (
-            COUNT_OPS == 9
+            COUNT_OPS == 10
         ), "[CROSSREFERENCE ERROR] Exhaustive handling of operations. Keep in mind that not all operations need to be handled in here. Only those that form blocks."
 
         if op[0] == OP_IF:
