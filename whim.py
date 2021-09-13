@@ -29,6 +29,7 @@ OP_DUMP = iota()
 OP_IF = iota()
 OP_END = iota()
 OP_ELSE = iota()
+OP_DUP = iota()
 COUNT_OPS = iota()
 
 
@@ -64,12 +65,16 @@ def elze():
     return (OP_ELSE,)  # noqa
 
 
+def dup():
+    return (OP_DUP,)  # noqa
+
+
 def simulate_program(program):
     stack = []
     ip = 0
 
     while ip < len(program):
-        assert COUNT_OPS == 8, "[SIMULATION ERROR] Exhaustive handling of operations"
+        assert COUNT_OPS == 9, "[SIMULATION ERROR] Exhaustive handling of operations"
 
         op = program[ip]
 
@@ -110,7 +115,7 @@ def simulate_program(program):
                 ip += 1
         elif op[0] == OP_ELSE:
             assert (
-                    len(op) >= 2
+                len(op) >= 2
             ), "Operation 'else' doesn't have a reference to the end of its block. Please call crossreference_blocks() before simulating."
 
             ip = op[1]
@@ -120,6 +125,13 @@ def simulate_program(program):
             a = stack.pop()
 
             print(a)
+
+            ip += 1
+        elif op[0] == OP_DUP:
+            a = stack.pop()
+
+            stack.append(a)
+            stack.append(a)
 
             ip += 1
         else:
@@ -215,13 +227,18 @@ def compile_program(program, out_file_path):
                 out.write("    ;; -- else --\n")
 
                 assert (
-                        len(op) >= 2
+                    len(op) >= 2
                 ), "Operation 'if' doesn't have a reference to the end of its block. Please call crossreference_blocks() before simulating."
 
                 out.write("    jmp addr_%d\n" % op[1])
-                out.write("addr_%d\n" % (ip + 1))
+                out.write("addr_%d:\n" % (ip + 1))
             elif op[0] == OP_END:
-                out.write("addr_%d\n" % ip)
+                out.write("addr_%d:\n" % ip)
+            elif op[0] == OP_DUP:
+                out.write("    ;; -- dup --\n")
+                out.write("    pop rax\n")
+                out.write("    push rax\n")
+                out.write("    push rax\n")
             else:
                 assert False, "[COMPILATION ERROR] Unreachable operation"
 
@@ -233,7 +250,7 @@ def compile_program(program, out_file_path):
 def parse_token_as_op(token):
     file_path, row, col, word = token
 
-    assert COUNT_OPS == 8, "[PARSING ERROR] Exhaustive operation handling"
+    assert COUNT_OPS == 9, "[PARSING ERROR] Exhaustive operation handling"
 
     if word == "+":
         return plus()
@@ -249,6 +266,8 @@ def parse_token_as_op(token):
         return end()
     elif word == "else":
         return elze()
+    elif word == "dup":
+        return dup()
     else:
         try:
             return push(int(word))
@@ -264,7 +283,7 @@ def crossreference_blocks(program):
         op = program[ip]
 
         assert (
-            COUNT_OPS == 8
+            COUNT_OPS == 9
         ), "[CROSSREFERENCE ERROR] Exhaustive handling of operations. Keep in mind that not all operations need to be handled in here. Only those that form blocks."
 
         if op[0] == OP_IF:
@@ -272,7 +291,9 @@ def crossreference_blocks(program):
         elif op[0] == OP_ELSE:
             if_ip = stack.pop()
 
-            assert program[if_ip][0] == OP_IF, "[CROSSREFERENCE ERROR] Operation 'else' can only be used in 'if' blocks."
+            assert (
+                program[if_ip][0] == OP_IF
+            ), "[CROSSREFERENCE ERROR] Operation 'else' can only be used in 'if' blocks."
 
             program[if_ip] = (OP_IF, ip + 1)
 
@@ -283,7 +304,9 @@ def crossreference_blocks(program):
             if program[block_ip][0] == OP_IF or program[block_ip][0] == OP_ELSE:
                 program[block_ip] = (program[block_ip][0], ip)
             else:
-                assert False, "[CROSSREFERENCE ERROR] Operation 'end' can only close 'if-else' blocks now."
+                assert (
+                    False
+                ), "[CROSSREFERENCE ERROR] Operation 'end' can only close 'if-else' blocks now."
 
     return program
 
@@ -316,7 +339,9 @@ def lex_file(file_path):
 
 
 def load_program_from_file(file_path):
-    return crossreference_blocks([parse_token_as_op(token) for token in lex_file(file_path)])
+    return crossreference_blocks(
+        [parse_token_as_op(token) for token in lex_file(file_path)]
+    )
 
 
 def cmd_echoed(cmd):
