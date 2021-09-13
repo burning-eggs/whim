@@ -2,6 +2,7 @@
 
 import sys
 import subprocess
+import shlex
 
 from os import path
 
@@ -140,18 +141,6 @@ def compile_program(program, out_file_path):
         out.write("    syscall\n")
 
 
-program = [
-    push(30),
-    push(30),
-    plus(),
-    dump(),
-    push(500),
-    push(100),
-    minus(),
-    dump(),
-]
-
-
 def parse_word_as_op(word):
     assert COUNT_OPS == 4, "[PARSING ERROR] Exhaustive operation handling"
 
@@ -170,8 +159,8 @@ def load_program_from_file(file_path):
         return [parse_word_as_op(word) for word in f.read().split()]
 
 
-def call_cmd(cmd):
-    print(cmd)
+def cmd_echoed(cmd):
+    print("[CMD] %s" % " ".join(map(shlex.quote, cmd)))
 
     subprocess.call(cmd)
 
@@ -226,10 +215,12 @@ if __name__ == "__main__":
         if basename.endswith(whim_ext):
             basename = basename[:-len(whim_ext)]
 
+        print("[COMPILE] Generating '%s'" % (basename + ".asm"))
+
         compile_program(program, basename + ".asm")
-        call_cmd(["nasm", "-felf64", basename + ".asm"])
-        call_cmd(["ld", "-o", basename + ".asm", basename + ".o"])
-        call_cmd(["rm", "-rf", basename + ".o"])
+        cmd_echoed(["nasm", "-felf64", basename + ".asm"])
+        cmd_echoed(["ld", "-o", basename + ".asm", basename + ".o"])
+        cmd_echoed(["rm", "-rf", basename + ".o"])
     elif subcommand == "help":
         usage(compiler_name)
 
