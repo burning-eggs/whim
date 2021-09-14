@@ -63,6 +63,12 @@
  - `dup` - duplicate an element on top of the stack.
 
  - `.` - print the element on top of the stack and remove it from the stack.
+
+### Comparison
+
+ - `=` - checks if two elements on top of the stack are equal. Removes the element from the stack and pushes `1` if they are equal, `0` if not.
+
+ - `>` - checks if the element below the top element is greater than the top element.
 ## Badges
 
  [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
