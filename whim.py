@@ -136,7 +136,7 @@ def simulate_program(program):
             ip = op[1]
         elif op[0] == OP_END:
             assert (
-                    len(op) >= 2
+                len(op) >= 2
             ), "Operation 'end' doesn't have a reference to the next instruction to jump to. Please call crossreference_blocks() before simulating."
 
             ip = op[1]
@@ -167,7 +167,7 @@ def simulate_program(program):
 
             if a == 0:
                 assert (
-                        len(op) >= 2
+                    len(op) >= 2
                 ), "Operation 'end' doesn't have a reference to the next instruction to jump to. Please call crossreference_blocks() before simulating."
 
                 ip = op[1]
@@ -274,7 +274,7 @@ def compile_program(program, out_file_path):
                 out.write("    jmp addr_%d\n" % op[1])
             elif op[0] == OP_END:
                 assert (
-                        len(op) >= 2
+                    len(op) >= 2
                 ), "Operation 'end' doesn't have a reference to the next instruction to jump to. Please call crossreference_blocks() before simulating."
 
                 out.write("    ;; -- end --\n")
@@ -303,7 +303,7 @@ def compile_program(program, out_file_path):
                 out.write("    test rax, rax\n")
 
                 assert (
-                        len(op) >= 2
+                    len(op) >= 2
                 ), "Operation 'do' doesn't have a reference to the end of its block. Please call crossreference_blocks() before simulating."
 
                 out.write("    jz addr_%d\n" % op[1])
