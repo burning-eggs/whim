@@ -35,7 +35,7 @@
 
 ### Compiling
 
- Compiling a `.whm` file generates assembly code and compiles it with [nasm](https://www.nasm.us).
+ Compiling a `.whm` file generates assembly code and compiles it with [nasm](https://www.nasm.us), and then links it with [GNU ld](https://www.gnu.org/software/binutils/). Make sure you have both available in your `$PATH`.
 
  ```console
  $ ./whim.py com program.whm
