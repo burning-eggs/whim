@@ -52,6 +52,17 @@
  60
  ```
 
+## Language Reference
+
+ This is what the language supports so far. **Since the language is a work in progress, the exact set of operations is subject to change.**
+
+### Stack Manipulation
+
+ - `<integer>` - push an integer onto the stack. Right now the integer is anything that can be parsed by the [int](https://docs.python.org/3/library/functions.html#int) function.
+
+ - `dup` - duplicate an element on top of the stack.
+
+ - `.` - print the element on top of the stack and remove it from the stack.
 ## Badges
 
  [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
