@@ -30,7 +30,10 @@
  Simulating a `.whm` simply interprets the program.
 
  ```console
+ $ cat program.whm
+ 50 50 + .
  $ ./whim.py sim program.whm
+ 100
  ```
 
 ### Compiling
@@ -38,8 +41,15 @@
  Compiling a `.whm` file generates assembly code and compiles it with [nasm](https://www.nasm.us), and then links it with [GNU ld](https://www.gnu.org/software/binutils/). Make sure you have both available in your `$PATH`.
 
  ```console
+ $ cat program.whm
+ 30 30 + .
  $ ./whim.py com program.whm
+ [COMPILE] Generating 'program.asm'
+ [CMD] nasm -felf64 program.asm
+ [CMD] ld -o program.asm program.o
+ [CMD] rm -rf program.o
  $ ./program.asm
+ 60
  ```
 
 ## Badges
